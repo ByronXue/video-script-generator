@@ -3,7 +3,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.utilities import WikipediaAPIWrapper
 
-def generate_script(subject, video_length, creativity, api_key):
+def generate_script(subject, video_length, creativity, api_key, model_type="deepseek-chat"):
     # 获取标题模板
     title_template = ChatPromptTemplate.from_messages(
         [
@@ -23,8 +23,15 @@ def generate_script(subject, video_length, creativity, api_key):
         ]
     )
     # 构建AI模型
-    # model = ChatOpenAI(api_key=os.environ.get('OPENAI_API_KEY'),base_url="https://aigc789.top/v1",model="gpt-3.5-turbo", temperature=creativity)
-    model = ChatOpenAI(api_key=api_key,base_url="https://api.deepseek.com",model="deepseek-chat", temperature=creativity)
+    if model_type == "deepseek-chat":
+        # model = ChatOpenAI(api_key=os.environ.get('OPENAI_API_KEY'),base_url="https://aigc789.top/v1",model="gpt-3.5-turbo", temperature=creativity)
+        model = ChatOpenAI(api_key=api_key,base_url="https://api.deepseek.com",model="deepseek-chat", temperature=creativity)
+    elif model_type == "gpt-3.5-turbo":
+        model = ChatOpenAI(api_key=api_key,model="gpt-3.5-turbo", temperature=creativity)
+    elif model_type == "gpt-4":
+        model = ChatOpenAI(api_key=api_key,model="gpt-4", temperature=creativity)
+    else:
+        model = ChatOpenAI(api_key=api_key, base_url="https://api.deepseek.com", model="deepseek-chat", temperature=creativity)
 
     # 构建链
     title_chain = title_template | model
@@ -32,15 +39,16 @@ def generate_script(subject, video_length, creativity, api_key):
 
     # 生成标题
     title = title_chain.invoke({"subject": subject}).content
+    print(title)
 
     # 维基百科搜索
     search = WikipediaAPIWrapper(lang="zh")
-    search_result = search.run(title)
+    search_result = search.run(subject)
 
     # 生成脚本
     script = script_chain.invoke({"title": title, "duration": video_length, "wikipedia_search": search_result}).content
     return search_result, title, script
 
 if __name__ == '__main__':
-    search_result, title, script = generate_script("中华田园猫", 1, 0.5, os.environ.get('OPENAI_API_KEY'))
+    search_result, title, script = generate_script("中华田园猫", 1, 0.5, os.environ.get('DEEPSEEK_API_KEY'))
     print(f"{title}\n{script}")
