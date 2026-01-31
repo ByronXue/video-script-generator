@@ -67,7 +67,7 @@ if st.session_state.script_data:
     st.write(data["script"])
 
     # 下载区域
-    st.subheader("📤 下载（可多次点击，页面不变）")
+    st.subheader("📤 脚本下载")
 
     # TXT
     txt_content = f"标题：{data['title']}\n\n脚本：\n{data['script']}".encode()
